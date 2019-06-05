@@ -40,9 +40,9 @@ class PrpCrypt(object):
         return bytes.decode(plain_text).rstrip('\0')
  
  
-if __name__ == '__main__':
-    pc = PrpCrypt('keyskeyskeyskeys')  # 初始化密钥
-    e = pc.encrypt("testtesttest")  # 加密
-    d = pc.decrypt(e)  # 解密
-    print("加密:", e)
-    print("解密:", d)
+# if __name__ == '__main__':
+    # pc = PrpCrypt('keyskeyskeyskeys')  # 初始化密钥
+    # e = pc.encrypt("testtesttest")  # 加密
+    # d = pc.decrypt(e)  # 解密
+    # print("加密:", e)
+    # print("解密:", d)
