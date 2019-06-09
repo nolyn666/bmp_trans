@@ -51,7 +51,7 @@ def encryptll(dict, l_item):
 
 def decryptll(dict, l_item):
 
-    d = pc.decrypt(e)  # 解密
+    d = pc.decrypt(e)  # 解密a
 
 cou=len(LL)*len(LL[0])
 trans_list = [i for i in range(cou//2,cou)]
