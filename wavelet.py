@@ -54,6 +54,13 @@ def decryptll(dict, l_item):
     d = pc.decrypt(e)  # 解密
 
 
+
+# [x x in range(356)]
+
+
+
+
+
 plt.figure('二维小波一级变换')
 for i in range(len(LL)):
     for j in range(164):
@@ -65,6 +72,8 @@ for i in range(len(LL)):
 #     for j in range(len(LL[i])):
 plt.subplot(221), plt.imshow(LL, 'gray'), plt.title("A")
 plt.show()
+
+
 
 # plt.figure('二维小波一级变换解密')
 # for i in range(len(LL)):
