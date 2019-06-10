@@ -4,98 +4,75 @@ import cv2
 import pywt
 import pywt.data
 import random
-from aesfunc import PrpCrypt
-import binascii
-
-img = cv2.imread("123.bmp")
-# img = cv2.resize(img, (448, 448))
-# 将多通道图像变为单通道图像
-img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
-
-# Wavelet transform of image, and plot approximation and details
-titles = ['Approximation', ' Horizontal detail',
-          'Vertical detail', 'Diagonal detail']
-coeffs2 = pywt.dwt2(img, 'bior1.3')
-LL, (LH, HL, HH) = coeffs2
-
-fig = plt.figure(figsize=(12, 3))
-for i, a in enumerate([LL, LH, HL, HH]):
-    ax = fig.add_subplot(1, 4, i + 1)
-    ax.imshow(a, interpolation="nearest", cmap=plt.cm.gray)
-    ax.set_title(titles[i], fontsize=10)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-fig.tight_layout()
-plt.show()
-# 32位密钥
-pc = PrpCrypt('keyskeyskeyskeys')  # 初始化密钥
-dict = {'1': '4', '2': '9', '3': '5', '4': '1',
-        '5': '7', '6': '8', '7': '2', '8': '3', '9': '6', '0': '0', '-': '-'}
 
 
-def encryptll(dict, l_item):
-    l_str = str(l_item)
-    ll_str = ''
-    for i in l_str:
-        if i != '.':
-            ll_str += dict[i]
-        else:
-            ll_str += '.'
-    return float(ll_str)
+class Bmpwave(object):
 
-# e_hex = binascii.hexlify(e) # 转
-    e_str = e.decode()  # 十六进制字节流转字符串
-    return sum([ord(a) for a in e_str])  # 字符串asiic码求和
+    def __init__(self, img_name):
+        self.trans_list = None
+        self.img_name = img_name
+        self.img = None
+        self.LL = None
+        self.LH = None
+        self.HL = None
+        self.HH = None
+        self.load_img()
 
 
-def decryptll(dict, l_item):
+    def make_list(self):
+        cou = len(self.LL) * len(self.LL[0])
+        self.trans_list = [i for i in range(cou // 2, cou)]
+        random.shuffle(self.trans_list)
 
-    d = pc.decrypt(e)  # 解密a
+    def load_img(self):
+        """
+        加载图片
+        :return: self.img
+        """
+        self.img = cv2.imread(self.img_name)
 
-cou=len(LL)*len(LL[0])
-trans_list = [i for i in range(cou//2,cou)]
-random.shuffle(trans_list)
+        # 将多通道图像变为单通道图像
+        self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
-# 加密
-plt.figure('二维小波一级变换')
-for i in range(len(LL)//2):
-    for j in range(len(LL[0])):
-        pos=i*len(LL[0])+j # 像素点的位置
-        row =trans_list[pos]//len(LL[0]) # 与当前像素对换的像素行号
-        column =trans_list[pos]%len(LL[0]) # 与当前像素对换的像素列号
-        temp=LL[i][j]
-        LL[i][j]=LL[row][column]
-        LL[row][column]=temp
-    # print('\n')
-    # print(len(LL[i]))
-#     for j in range(len(LL[i])):
-plt.subplot(221), plt.imshow(LL, 'gray'), plt.title("A")
-plt.show()
+    def wavelet_trans(self):
+        """
 
-# 解密
-plt.figure('二维小波一级变换')
-for i in range(len(LL)//2):
-    for j in range(len(LL[0])):
-        pos=i*len(LL[0])+j # 像素点的位置
-        row =trans_list[pos]//len(LL[0]) # 与当前像素对换的像素行号
-        column =trans_list[pos]%len(LL[0]) # 与当前像素对换的像素列号
-        temp=LL[i][j]
-        LL[i][j]=LL[row][column]
-        LL[row][column]=temp
-    # print('\n')
-    # print(len(LL[i]))
-#     for j in range(len(LL[i])):
-plt.subplot(221), plt.imshow(LL, 'gray'), plt.title("A")
-plt.show()
+        :return:
+        """
+        coeffs2 = pywt.dwt2(self.img, 'haar')
+        self.LL, (self.LH, self.HL, self.HH) = coeffs2
 
-# plt.figure('二维小波一级变换解密')
-# for i in range(len(LL)):
-#     for j in range(len(LL[i])):
-#         LL[i][j] = decryptll(pc, LL[i][j])
+    def wavelet_itrans(self):
+        """
 
-# plt.subplot(221), plt.imshow(LL, 'gray'), plt.title("A")
-# plt.show()
-# d = pc.decrypt(e)  # 解密
-# print("加密:", e)
-# print("解密:", d)
+        :return:
+        """
+        coeffs2 = self.LL, (self.LH, self.HL, self.HH)
+        self.img = pywt.idwt2(coeffs2, 'haar')
+
+    def cryptobmp(self):
+        for i in range(len(self.LL) // 2):
+            for j in range(len(self.LL[0])):
+                pos = i * len(self.LL[0]) + j  # 像素点的位置
+                row = self.trans_list[pos] // len(self.LL[0])  # 与当前像素对换的像素行号
+                column = self.trans_list[pos] % len(self.LL[0])  # 与当前像素对换的像素列号
+                self.LL[i][j], self.LL[row][column] = self.LL[row][column], self.LL[i][j]
+
+    def showbmp(self):
+        plt.imshow(self.img, 'gray')
+        plt.show()
+
+
+if __name__ == '__main__':
+    bmp=Bmpwave('123.bmp')
+
+    bmp.wavelet_trans()
+    bmp.make_list()
+    bmp.cryptobmp()
+    bmp.wavelet_itrans()
+    bmp.showbmp()
+
+    bmp.wavelet_trans()
+    bmp.cryptobmp()
+    bmp.wavelet_itrans()
+    bmp.showbmp()
