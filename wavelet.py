@@ -36,27 +36,18 @@ class BmpBGR(object):
 
     def trans_bgr(self):
         bb = Bmpwave(self.B)
-        bb.wavelet_trans()
-        # bb.make_list()
-        bb.get_list()
-        bb.cryptobmp()
-        self.bgr_b = bb.wavelet_itrans()
+        self.bgr_b = bb.get_img()
 
         gg = Bmpwave(self.G)
-        gg.wavelet_trans()
-        gg.get_list()
-        gg.cryptobmp()
-        self.bgr_g = gg.wavelet_itrans()
+        self.bgr_g = gg.get_img()
 
         rr = Bmpwave(self.R)
-        rr.wavelet_trans()
-        rr.get_list()
-        rr.cryptobmp()
-        self.bgr_r = rr.wavelet_itrans()
+        self.bgr_r = rr.get_img()
 
     def show_img(self):
         img = cv2.merge([self.bgr_b, self.bgr_g, self.bgr_r])
-        cv2.imwrite('222.bmp', img)
+        cv2.imwrite('111.bmp', img)
+        # cv2.imwrite('222.bmp', img)
 
 
 class Bmpwave(object):
@@ -68,18 +59,23 @@ class Bmpwave(object):
         self.LH = None
         self.HL = None
         self.HH = None
-
-    def make_list(self):
-
-        cou = len(self.LL) * len(self.LL[0])
-        self.trans_list = [i for i in range(cou // 2, cou)]
-        random.shuffle(self.trans_list)
-        with open('./passwd.txt', 'w') as f:
-            f.write(str(self.trans_list))
+        self.wavelet_trans()
+        self.get_list()
+        self.cryptobmp()
+        self.wavelet_itrans()
 
     def get_list(self):
-        with open('./passwd.txt', 'r') as f:
+        try:
+            f = open('./passwd.txt', 'r')
             self.trans_list = list(eval(f.read()))
+        except:
+            cou = len(self.LL) * len(self.LL[0])
+            self.trans_list = [i for i in range(cou // 2, cou)]
+            random.shuffle(self.trans_list)
+            with open('./passwd.txt', 'w') as f:
+                f.write(str(self.trans_list))
+        finally:
+            f.close()
 
     def wavelet_trans(self):
         """
@@ -96,7 +92,6 @@ class Bmpwave(object):
         """
         coeffs2 = self.LL, (self.LH, self.HL, self.HH)
         self.img = pywt.idwt2(coeffs2, 'haar')
-        return self.img
 
     def cryptobmp(self):
         for i in range(len(self.LL) // 2):
@@ -106,16 +101,10 @@ class Bmpwave(object):
                 column = self.trans_list[pos] % len(self.LL[0])  # 与当前像素对换的像素列号
                 self.LL[i][j], self.LL[row][column] = self.LL[row][column], self.LL[i][j]
 
-    # def showbmp(self):
-    #     # plt.imshow(self.img, 'gray')
-    #     # plt.show()
-    #     # self.img = cv2.cvtColor(self.img, cv2.COLOR_GRAY2BGR).astype(np.float32)
-    #     self.img = cv2.merge([self.B, self.G, self.R])
-    #     cv2.imwrite('111.bmp', self.img)
+    def get_img(self):
+        return self.img
 
 
 if __name__ == '__main__':
-    # bmp = BmpBGR('123.bmp')
-    bmp = BmpBGR('111.bmp')
-
-
+    bmp = BmpBGR('123.bmp')
+    # bmp = BmpBGR('111.bmp')
