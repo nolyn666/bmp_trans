@@ -105,6 +105,9 @@ class Bmpwave(object):
         self.HL = None
         self.HH = None
         self.trans_bmp()
+        self.wavelet_trans()
+        self.wavelet_itrans()
+
 
     def wavelet_trans(self):
         """
@@ -123,15 +126,8 @@ class Bmpwave(object):
     def trans_bmp(self):
         if self.mode == 'e':
             self.cryptobmp()
-            self.wavelet_trans()
-
-            self.wavelet_itrans()
-
         elif self.mode == 'd':
             self.decryptobmp()
-            self.wavelet_trans()
-
-            self.wavelet_itrans()
         else:
             exit(1)
 
