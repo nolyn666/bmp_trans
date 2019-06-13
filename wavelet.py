@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import cv2
 import pywt
 import pywt.data
-import random
-import math
 import hashlib
 from pathlib import Path
 
@@ -12,6 +10,12 @@ from pathlib import Path
 class Iter_bmps(object):
 
     def __init__(self, path_name, key, mode):
+        """
+
+        :param path_name: 文件夹路径
+        :param key: 密钥
+        :param mode: 模式:加密/解密
+        """
         crypto_list = Cryptokey(key)
         self.crypto_list = crypto_list.get_crypto_list()  # 获取密钥序列
         self.path_name = path_name
@@ -19,6 +23,10 @@ class Iter_bmps(object):
         self.iterallbmp()
 
     def iterallbmp(self):
+        """
+        遍历给定的目录,获取所有bmp格式图片的相对路径,并进行加密
+        :return:
+        """
         for item in Path(self.path_name).rglob('*.bmp'):
             BmpBGR(str(item), self.crypto_list, self.mode)
 
@@ -26,6 +34,12 @@ class Iter_bmps(object):
 class BmpBGR(object):
 
     def __init__(self, img_name, crypto_list, mode):
+        """
+
+        :param img_name:图片名称
+        :param crypto_list: 加密列表
+        :param mode: 模式:加密/解密
+        """
         self.mode = mode
         self.img_name = img_name
         self.crypto_list = crypto_list
@@ -75,7 +89,7 @@ class BmpBGR(object):
 
         img = cv2.merge([self.bgr_b, self.bgr_g, self.bgr_r])
         cv2.imwrite(self.img_name, img)
-        print(self.img_name+"  Done")
+        print(self.img_name + "  Done")
 
 
 class Bmpwave(object):
