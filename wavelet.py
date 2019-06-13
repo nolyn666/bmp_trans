@@ -6,15 +6,29 @@ import pywt.data
 import random
 import math
 import hashlib
+from pathlib import Path
+
+
+class Iter_bmps(object):
+
+    def __init__(self, path_name, key, mode):
+        crypto_list = Cryptokey(key)
+        self.crypto_list = crypto_list.get_crypto_list()  # 获取密钥序列
+        self.path_name = path_name
+        self.mode = mode
+        self.iterallbmp()
+
+    def iterallbmp(self):
+        for item in Path(self.path_name).rglob('*.bmp'):
+            BmpBGR(str(item), self.crypto_list, self.mode)
 
 
 class BmpBGR(object):
 
-    def __init__(self, img_name, key, mode):
+    def __init__(self, img_name, crypto_list, mode):
         self.mode = mode
         self.img_name = img_name
-        crypto_list = Cryptokey(key)
-        self.mylist = crypto_list.get_mylist()  # 获取密钥序列
+        self.crypto_list = crypto_list
         self.B = None
         self.G = None
         self.R = None
@@ -23,7 +37,7 @@ class BmpBGR(object):
         self.bgr_r = None
         self.load_img()
         self.trans_bgr()
-        self.show_img()
+        self.save_img()
 
     def load_img(self):
         """
@@ -44,44 +58,39 @@ class BmpBGR(object):
         返回加密/解密后的图像
         :return:
         """
-        bb = Bmpwave(self.img_name, self.B, self.mylist, self.mode, 'B')
+        bb = Bmpwave(self.img_name, self.B, self.crypto_list, self.mode)
         self.bgr_b = bb.get_img()
 
-        gg = Bmpwave(self.img_name, self.G, self.mylist, self.mode, 'G')
+        gg = Bmpwave(self.img_name, self.G, self.crypto_list, self.mode)
         self.bgr_g = gg.get_img()
 
-        rr = Bmpwave(self.img_name, self.R, self.mylist, self.mode, 'R')
+        rr = Bmpwave(self.img_name, self.R, self.crypto_list, self.mode)
         self.bgr_r = rr.get_img()
 
-    def show_img(self):
+    def save_img(self):
         """
         合并图片的三个通道,存储图片
         :return:
         """
+
         img = cv2.merge([self.bgr_b, self.bgr_g, self.bgr_r])
-        if self.mode == 'e':
-            save_name = 'en_' + self.img_name
-        elif self.mode == 'd':
-            save_name = 'de_' + self.img_name
-        cv2.imwrite(save_name, img)
+        cv2.imwrite(self.img_name, img)
+        print(self.img_name+"  Done")
 
 
 class Bmpwave(object):
 
-    def __init__(self, img_name, img, mylist, mode, color):
+    def __init__(self, img_name, img, crypto_list, mode):
         self.img_name = img_name
         self.mode = mode
-        self.color = color
         self.trans_list = None
         self.img = img
-        self.mylist = mylist
+        self.crypto_list = crypto_list
         self.LL = None
         self.LH = None
         self.HL = None
         self.HH = None
-        # self.wavelet_trans()
         self.trans_bmp()
-        # self.wavelet_itrans()
 
     def wavelet_trans(self):
         """
@@ -117,20 +126,16 @@ class Bmpwave(object):
         按照给定的序列,对图片进行像素级加密
         :return:
         """
-        # print(len(self.img))
-        # print(self.img[0])
         for i in range(len(self.img)):
             for j in range(len(self.img[0])):
-                salt = (self.mylist[i % 64] * self.mylist[j % 64]) % 256
+                salt = (self.crypto_list[i % 64] * self.crypto_list[j % 64]) % 256
                 self.img[i][j] = (self.img[i][j] + salt) % 256
-                # self.LL[i][j] = self.LL[i][j] % 510
 
     def decryptobmp(self):
         for i in range(len(self.img)):
             for j in range(len(self.img[0])):
-                salt = (self.mylist[i % 64] * self.mylist[j % 64]) % 256
+                salt = (self.crypto_list[i % 64] * self.crypto_list[j % 64]) % 256
                 self.img[i][j] = (self.img[i][j] - salt) % 256
-                # self.LL[i][j] =self.LL[i][j]  % 510
 
     def get_img(self):
         """
@@ -144,20 +149,20 @@ class Cryptokey(object):
 
     def __init__(self, key):
         self.key = key
-        self.mylist = None
+        self.crypto_list = None
         self.sha256fun()
 
     def sha256fun(self):
         m2 = hashlib.sha256()
         m2.update(self.key.encode('utf-8'))
-        self.mylist = [int(ord(x)) for x in m2.hexdigest()]
+        self.crypto_list = [int(ord(x)) for x in m2.hexdigest()]
 
-    def get_mylist(self):
-        return self.mylist
+    def get_crypto_list(self):
+        return self.crypto_list
 
 
 if __name__ == '__main__':
     key = input("please input your key:")
     mode = input("input 'e' to encrypto or 'd' to decrypto, others for exit:")
-    bmp = BmpBGR('en_1.bmp', key, mode)
-    # bmp = BmpBGR('2.bmp')
+    path = input("input the path that you want to crypto:")
+    bmps = Iter_bmps(path, key, mode)
